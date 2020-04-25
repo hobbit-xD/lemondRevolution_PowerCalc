@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import time
 
+from Tkinter import *
+
 from ant.core import driver
 from ant.core import node
 
@@ -9,13 +11,58 @@ from cadenceSensorRx import CadenceSensorRx
 from powerCalculator import PowerCalculator
 from config import DEBUG, LOG, SERIAL, NETKEY, SPEED_SENSOR_TYPE, CADENCE_SENSOR_TYPE, SPEED_SENSOR_ID
 
+root = Tk()
+
+root.geometry("300x300")
+root.title("Lemond Revolution Power Calculator")
+
 antnode = None
 speed_sensor = None
 cadence_sensor = None
 power_meter = None
 spd = 0.0
 cadence = 0.0
-power = 0.0
+power = 0
+
+
+#Speed label and value 
+spdLabelValue = Label(root, text="")
+spdLabelValue.pack()
+
+cadenceLabelValue = Label(root,text="")
+cadenceLabelValue.pack()
+
+powerLabelValue = Label(root,text="")
+powerLabelValue.pack()
+
+
+def myMainLoop():
+    print "Main wait loop"
+    try:
+
+        spd = speed_sensor.getSpeed()
+        spdLabelValue.configure(text="Speed: " + str(round(spd,2)) + " km/h")
+
+        cadence = cadence_sensor.getCadence()
+        cadenceLabelValue.configure(text="Cadence: " + str(int(cadence)) + " rpm")
+        
+        power = power_meter.calculatePower(spd, cadence)
+        powerLabelValue.configure(text="Power: " + str(power) + " W")
+
+
+
+        # Stampa i valori
+        '''
+               print "Speed: " , spd
+               print "Cadence: " , cadence
+               print "Power: " , power
+               '''
+
+        root.after(1000,myMainLoop)
+
+    except (KeyboardInterrupt, SystemExit):
+        exit()
+
 
 try:
    # print "Using " + POWER_CALCULATOR.__class__.__name__
@@ -64,22 +111,9 @@ try:
     POWER_CALCULATOR.notify_change(power_meter)
     '''
 
-    print "Main wait loop"
-    while True:
-        try:
-            time.sleep(1)
-            
-            spd = speed_sensor.getSpeed()
-            cadence = cadence_sensor.getCadence()
-            power = power_meter.calculatePower(spd, cadence)
+    root.after(1000,myMainLoop)
+    root.mainloop()
 
-            # Stampa i valori
-            print "Speed: " , spd
-            print "Cadence: " , cadence
-            print "Power: " , power
-
-        except (KeyboardInterrupt, SystemExit):
-            break
 
 except Exception as e:
     print "Exception: "+repr(e)

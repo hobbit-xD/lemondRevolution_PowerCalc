@@ -32,4 +32,4 @@ class PowerCalculator:
         else:
             self.power = 0.0
 
-        return self.power
+        return int(self.power)
