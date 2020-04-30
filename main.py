@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import time
 
+import Tkinter
 from Tkinter import *
 
 from ant.core import driver
@@ -15,6 +16,7 @@ root = Tk()
 
 root.geometry("300x300")
 root.title("Lemond Revolution Power Calculator")
+root.call('wm', 'iconphoto', root._w, PhotoImage(file='lr1.png'))
 
 antnode = None
 speed_sensor = None
@@ -23,32 +25,49 @@ power_meter = None
 spd = 0.0
 cadence = 0.0
 power = 0
+threeSecPower = 0
+thirtySecPower = 0
 
-
-#Speed label and value 
+# Speed label and value
 spdLabelValue = Label(root, text="")
 spdLabelValue.pack()
 
-cadenceLabelValue = Label(root,text="")
+cadenceLabelValue = Label(root, text="")
 cadenceLabelValue.pack()
 
-powerLabelValue = Label(root,text="")
+powerLabelValue = Label(root, text="")
 powerLabelValue.pack()
+
+threeSecPowerLabel = Label(root, text="")
+threeSecPowerLabel.pack()
+
+thirtySecPowerLabelValue = Label(root, text="")
+thirtySecPowerLabelValue.pack()
 
 
 def myMainLoop():
-    print "Main wait loop"
+    #    print "Main wait loop"
     try:
 
         spd = speed_sensor.getSpeed()
-        spdLabelValue.configure(text="Speed: " + str(round(spd,2)) + " km/h")
+        spdLabelValue.configure(text="Speed: " + str(round(spd, 2)) + " km/h")
 
         cadence = cadence_sensor.getCadence()
-        cadenceLabelValue.configure(text="Cadence: " + str(int(cadence)) + " rpm")
-        
-        power = power_meter.calculatePower(spd, cadence)
+        cadenceLabelValue.configure(
+            text="Cadence: " + str(int(cadence)) + " rpm")
+
+        power_meter.calculatePower(spd, cadence)
+
+        power = power_meter.getPower()
         powerLabelValue.configure(text="Power: " + str(power) + " W")
 
+        threeSecPower = power_meter.getThreeSecAvgPower()
+        threeSecPowerLabel.configure(
+            text="3 Sec Power: " + str(threeSecPower) + " W")
+
+        thirtySecPower = power_meter.getThirtySecAvgPower()
+        thirtySecPowerLabelValue.configure(
+            text="30 Sec Power: " + str(thirtySecPower) + " W")
 
 
         # Stampa i valori
@@ -58,7 +77,7 @@ def myMainLoop():
                print "Power: " , power
                '''
 
-        root.after(1000,myMainLoop)
+        root.after(1000, myMainLoop)
 
     except (KeyboardInterrupt, SystemExit):
         exit()
@@ -67,7 +86,7 @@ def myMainLoop():
 try:
    # print "Using " + POWER_CALCULATOR.__class__.__name__
 
-    stick = driver.USB2Driver(SERIAL, log=LOG, debug=DEBUG)
+    stick = driver.USB2Driver(None, log=LOG, debug=DEBUG)
     antnode = node.Node(stick)
     print "Starting ANT node"
     antnode.start()
@@ -111,7 +130,7 @@ try:
     POWER_CALCULATOR.notify_change(power_meter)
     '''
 
-    root.after(1000,myMainLoop)
+    root.after(1000, myMainLoop)
     root.mainloop()
 
 
@@ -123,7 +142,7 @@ finally:
         speed_sensor.stop()
 
     if cadence_sensor:
-        print "Closing speed sensor"
+        print "Closing cadence sensor"
         cadence_sensor.stop()
     '''
     if power_meter:

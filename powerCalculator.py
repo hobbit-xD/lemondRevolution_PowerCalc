@@ -1,3 +1,7 @@
+import sys
+import time
+
+
 class PowerCalculator:
 
     xp = [0, 10, 17.7, 19.2, 21, 23.2, 24, 26, 26.1, 27.6, 28.6, 29.4,
@@ -8,7 +12,13 @@ class PowerCalculator:
 
     def __init__(self):
         self.power = 0.0
-
+        self.init_time = time.time()
+        self.last_time1 = self.init_time
+        self.last_time2 = self.init_time
+        self.threeSec_avgPower = 0.0
+        self.thirtySec_avgPower = 0.0
+        self.cumulativePower1 = 0.0
+        self.cumulativePower2 = 0.0
 
     def interp(self, x_arr, y_arr, x):
         for i, xi in enumerate(x_arr):
@@ -24,12 +34,63 @@ class PowerCalculator:
         return y_min + (y_max - y_min) * factor
 
     def getPower(self):
-        return self.power
+        return int(self.power)
+
+    def getThreeSecAvgPower(self):
+        return int(self.threeSec_avgPower)
+
+    def getThirtySecAvgPower(self):
+        return int(self.thirtySec_avgPower)
+
+    def threeSecAvgPowerCalc(self):
+        currentTime = time.time()
+        time_gap = (currentTime - self.last_time1)
+
+        '''
+        print "Init Time: " , self.init_time
+        print "Last Time: " , self.last_time
+        print "Current Time: " , currentTime
+        print "Time gap: " , time_gap
+        '''
+
+        if int(time_gap) <= 3:
+            self.cumulativePower1 += self.power
+
+            #print "Cumulative Power: " , self.cumulativePower1
+        else:
+            self.threeSec_avgPower = (self.cumulativePower1 / 3)
+            self.cumulativePower1 = 0.0
+            self.last_time1 = currentTime
+
+            #print "Avg: " , self.threeMin_avgPower
+
+    def thirtySecAvgPowerCalc(self):
+        currentTime = time.time()
+        time_gap = (currentTime - self.last_time2)
+
+        '''
+        print "Init Time: " , self.init_time
+        print "Last Time: " , self.last_time
+        print "Current Time: " , currentTime
+        print "Time gap: " , time_gap
+        '''
+
+        if int(time_gap) <= 30:
+            self.cumulativePower2 += self.power
+
+            #print "Cumulative Power: " , self.cumulativePower2
+        else:
+            self.thirtySec_avgPower = (self.cumulativePower2 / 30)
+            self.cumulativePower2 = 0.0
+            self.last_time2 = currentTime
+
+            #print "Avg: " , self.thirtySec_avgPower
 
     def calculatePower(self, speed, cadence):
         if cadence != 0.0:
-            self.power = self.interp(self.xp,self.yp,speed)
+            self.power = self.interp(self.xp, self.yp, speed)
         else:
             self.power = 0.0
 
-        return int(self.power)
+        self.threeSecAvgPowerCalc()
+        self.thirtySecAvgPowerCalc()
